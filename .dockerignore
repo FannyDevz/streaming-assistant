@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+server/data.sqlite
+server/data.sqlite-*
+server/uploads
+data
+.git
+.claude
+*.md
+docs
+.env
+**/.env
+npm-debug.log

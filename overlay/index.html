@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Overlay Alert — Streaming Assistant</title>
+    <link rel="stylesheet" href="./overlay.css" />
+  </head>
+  <body>
+    <!-- Indikator koneksi kecil (hanya kelihatan saat belum konek). -->
+    <div id="conn" class="conn" data-state="connecting">menyambung…</div>
+
+    <!-- GIF/gambar soundboard: tampil sementara saat sound diputar. -->
+    <div id="sfx" class="sfx" hidden><img id="sfxImg" alt="" /></div>
+
+    <!-- Wadah alert. Posisi diatur lewat class dari template. -->
+    <div id="stage" class="stage pos-top">
+      <div id="card" class="card" hidden>
+        <div id="media" class="media" hidden>
+          <img id="image" alt="" />
+        </div>
+        <div class="body">
+          <div id="name" class="name">@penonton</div>
+          <div id="message" class="message">pesan alert</div>
+          <div id="gif" class="gifbox" hidden><img id="gifImg" alt="" /></div>
+          <div id="video" class="video" hidden><div id="yt"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./overlay.js"></script>
+  </body>
+</html>

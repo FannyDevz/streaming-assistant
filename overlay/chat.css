@@ -1,0 +1,113 @@
+/* Overlay live chat — gaya neobrutalism, latar transparan untuk OBS. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+
+.conn {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border: 2px solid #000;
+  background: #ffe14d;
+  box-shadow: 3px 3px 0 #000;
+  z-index: 10;
+}
+.conn[data-state="open"] {
+  display: none;
+}
+.conn[data-state="closed"] {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+/* Kontainer chat: kiri-bawah, tumpuk ke atas, pesan baru di bawah */
+.chat {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: 440px;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.msg {
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000;
+  padding: 8px 12px;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 600;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  animation: pop-in 0.35s cubic-bezier(0.22, 1.6, 0.36, 1) both;
+}
+.msg.leaving {
+  animation: pop-out 0.3s ease forwards;
+}
+
+.who {
+  font-weight: 900;
+  margin-right: 6px;
+}
+.who.owner {
+  color: #d6006e;
+}
+.who.mod {
+  color: #1d4ed8;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border: 2px solid #000;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.badge.owner {
+  background: var(--pink, #ff5ea8);
+}
+.badge.mod {
+  background: #7cc4ff;
+}
+.badge.member {
+  background: #7cf07c;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop-out {
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+    margin-top: -40px;
+  }
+}

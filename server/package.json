@@ -1,0 +1,27 @@
+{
+  "name": "streaming-assistant-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend untuk bot YouTube Live: baca chat, sistem point, alert OBS",
+  "scripts": {
+    "dev": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx watch src/index.ts",
+    "start": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^9.4.0",
+    "@fastify/static": "^8.0.4",
+    "@fastify/websocket": "^11.0.2",
+    "fastify": "^5.2.0",
+    "masterchat": "^1.1.0",
+    "obs-websocket-js": "^5.0.8",
+    "pino-pretty": "^13.1.3",
+    "tsx": "^4.19.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}

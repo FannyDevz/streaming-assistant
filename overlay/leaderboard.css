@@ -1,0 +1,144 @@
+/* Overlay leaderboard kompak untuk OBS — neobrutalism, latar transparan. */
+:root {
+  --ink: #000;
+  --yellow: #ffde00;
+  --pink: #ff5ea8;
+  --cyan: #4dd0e1;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+
+.conn {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border: 2px solid #000;
+  background: #ffe14d;
+  box-shadow: 3px 3px 0 #000;
+  z-index: 10;
+}
+.conn[data-state="open"] {
+  display: none;
+}
+
+/* Penempatan panel */
+.board {
+  position: fixed;
+  width: 340px;
+}
+.board-top-right {
+  top: 20px;
+  right: 20px;
+}
+.board-top-left {
+  top: 20px;
+  left: 20px;
+}
+.board-bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+.board-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.title {
+  background: var(--yellow);
+  border: 4px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  padding: 8px 14px;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 7px 12px;
+  animation: slide-in 0.35s cubic-bezier(0.22, 1.6, 0.36, 1) both;
+  transition: background 0.3s;
+}
+.item .rank {
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+}
+.item .name {
+  font-size: 17px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item .pts {
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.item.top1 {
+  background: var(--yellow);
+}
+.item.top2 {
+  background: var(--cyan);
+}
+.item.top3 {
+  background: var(--pink);
+}
+
+/* Kilau saat point bertambah */
+.item.bump {
+  animation: bump 0.4s ease;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+    box-shadow: 8px 8px 0 var(--ink);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

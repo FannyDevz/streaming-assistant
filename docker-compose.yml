@@ -1,0 +1,29 @@
+# Jalankan Streaming Assistant 24/7. Data (SQLite + upload) persist di ./data.
+#
+#   docker compose up -d --build      # mulai / update
+#   docker compose logs -f            # lihat log
+#   docker compose down               # stop
+#
+services:
+  app:
+    build: .
+    image: streaming-assistant
+    container_name: streaming-assistant
+    restart: unless-stopped
+    ports:
+      - "4300:4300"
+    environment:
+      # WAJIB ganti demi keamanan (dipakai untuk login dashboard).
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      PORT: "4300"
+      HOST: "0.0.0.0"
+      DB_PATH: /data/data.sqlite
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4300/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

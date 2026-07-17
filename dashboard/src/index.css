@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ====== Tema neobrutalism ====== */
+:root {
+  --ink: #000000;
+  --paper: #fdf6e3;
+  --yellow: #ffde00;
+  --pink: #ff5ea8;
+  --cyan: #4dd0e1;
+  --green: #7cf07c;
+  --red: #ff6b6b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--ink) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* Blok dasar: border tebal + shadow keras */
+.neo {
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.neo-lg {
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.neo-card {
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  background: #fff;
+}
+
+/* Tombol */
+.neo-btn {
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  background: var(--yellow);
+  padding: 8px 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: transform 0.05s, box-shadow 0.05s;
+  user-select: none;
+}
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.neo-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.neo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.neo-btn.pink { background: var(--pink); }
+.neo-btn.cyan { background: var(--cyan); }
+.neo-btn.green { background: var(--green); }
+.neo-btn.red { background: var(--red); color: #fff; }
+.neo-btn.white { background: #fff; }
+
+/* Input & textarea */
+.neo-input {
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  background: #fff;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+.neo-input:focus {
+  box-shadow: 3px 3px 0 var(--pink);
+}
+
+/* Tag / badge hitam */
+.neo-tag {
+  display: inline-block;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 2px solid var(--ink);
+}
+
+/* Tab aktif */
+.neo-tab {
+  border: 3px solid var(--ink);
+  background: #fff;
+  padding: 8px 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.neo-tab.active {
+  background: var(--yellow);
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+/* Baris tabel zebra */
+.neo-row:nth-child(even) {
+  background: #fffbe6;
+}

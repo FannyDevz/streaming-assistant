@@ -1,0 +1,20 @@
+# Dependencies
+**/node_modules
+
+# Build output
+dashboard/dist
+
+# Data & uploads (runtime)
+server/data.sqlite
+server/data.sqlite-*
+server/uploads/
+data/
+
+# Env & secrets
+**/.env
+!**/.env.example
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store

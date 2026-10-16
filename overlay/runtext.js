@@ -20,17 +20,14 @@
       .map((s) => s.trim())
       .filter(Boolean);
     if (items.length === 0) {
-      track.style.animation = "none";
+      TickerMarquee.set(track, null);
       track.innerHTML = "";
       return;
     }
     const block = items
       .map((t) => `<span class="item"><span>${esc(t)}</span><span class="sep">•</span></span>`)
       .join("");
-    track.innerHTML = block + block;
-    const width = track.scrollWidth / 2;
-    const dur = Math.max(12, Math.round(width / 60));
-    track.style.animation = `marquee ${dur}s linear infinite`;
+    TickerMarquee.set(track, block);
   }
 
   async function tick() {

@@ -33,6 +33,8 @@ registerDict({
   "Kalau diisi, GIF/gambar akan muncul di overlay Alert selama suara diputar.":
     "If set, the GIF/image will appear in the Alert overlay while the sound plays.",
   "💾 Simpan Sound": "💾 Save Sound",
+  "Pintasan keyboard: tekan 1–9 untuk memutar 9 sound pertama, 0 untuk stop.":
+    "Keyboard shortcuts: press 1–9 to play the first 9 sounds, 0 to stop.",
 });
 
 interface Sound {
@@ -129,6 +131,35 @@ export function SoundboardTab() {
     toast(t("⏹ Suara dihentikan"));
   }
 
+  // Pintasan keyboard: 1–9 memutar sound ke-1..9, 0 = stop. Pakai ref supaya
+  // listener terpasang sekali tapi selalu membaca sounds/handler terbaru.
+  const soundsRef = useRef(sounds);
+  soundsRef.current = sounds;
+  const playRef = useRef(play);
+  playRef.current = play;
+  const stopRef = useRef(stopAll);
+  stopRef.current = stopAll;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat) return;
+      // Jangan bajak tombol saat user sedang mengetik / fokus di form.
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      if (e.key >= "1" && e.key <= "9") {
+        const s = soundsRef.current[Number(e.key) - 1];
+        if (s) {
+          e.preventDefault();
+          playRef.current(s.id);
+        }
+      } else if (e.key === "0") {
+        e.preventDefault();
+        stopRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="grid md:grid-cols-2 gap-5 items-start">
       <Card title={t("🔊 Soundboard")} accent="var(--pink)">
@@ -138,7 +169,7 @@ export function SoundboardTab() {
         </p>
         <div className="mb-3 flex items-center gap-3 flex-wrap">
           <Button color="red" onClick={stopAll}>
-            {t("⏹ Stop & Sembunyikan")}
+            {t("⏹ Stop & Sembunyikan")} <kbd className="ml-1 opacity-70">0</kbd>
           </Button>
           <label className="flex items-center gap-1 text-sm font-bold cursor-pointer select-none">
             <input type="checkbox" checked={preview} onChange={(e) => setPreview(e.target.checked)} />
@@ -150,12 +181,24 @@ export function SoundboardTab() {
           <b>{t('"Dengar di sini"')}</b>{" "}
           {t("untuk memutar juga di dashboard (berguna kalau overlay belum dibuka di OBS).")}
         </p>
+        <p className="text-xs opacity-60 -mt-2 mb-3">
+          ⌨️ {t("Pintasan keyboard: tekan 1–9 untuk memutar 9 sound pertama, 0 untuk stop.")}
+        </p>
         {sounds.length === 0 ? (
           <p className="opacity-60 text-sm">{t("Belum ada sound. Tambah di kanan.")}</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
-            {sounds.map((s) => (
+            {sounds.map((s, i) => (
               <div key={s.id} className="neo p-2 flex items-center gap-2" style={{ background: "#fff" }}>
+                {i < 9 ? (
+                  <kbd
+                    className="shrink-0 text-xs font-black w-6 h-6 flex items-center justify-center"
+                    style={{ border: "2px solid #000", background: "var(--yellow)" }}
+                    title={`Shortcut: ${i + 1}`}
+                  >
+                    {i + 1}
+                  </kbd>
+                ) : null}
                 {s.imageUrl ? (
                   <img
                     src={s.imageUrl}

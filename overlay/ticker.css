@@ -85,7 +85,9 @@ html, body {
 
 @keyframes marquee {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  /* Geser tepat selebar satu salinan (di-set JS via --shift). Fallback -50%
+     untuk 2 salinan bila JS belum sempat mengukur. */
+  to { transform: translateX(calc(-1 * var(--shift, 50%))); }
 }
 
 .empty {

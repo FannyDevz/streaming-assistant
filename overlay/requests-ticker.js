@@ -16,7 +16,7 @@
 
   function render(entries) {
     if (entries.length === 0) {
-      track.style.animation = "none";
+      TickerMarquee.set(track, null);
       track.innerHTML = '<span class="item"><span style="opacity:.6">Belum ada request…</span></span>';
       return;
     }
@@ -29,10 +29,7 @@
           `<span class="sep">•</span></span>`,
       )
       .join("");
-    track.innerHTML = block + block;
-    const width = track.scrollWidth / 2;
-    const dur = Math.max(12, Math.round(width / 60));
-    track.style.animation = `marquee ${dur}s linear infinite`;
+    TickerMarquee.set(track, block);
   }
 
   async function tick() {

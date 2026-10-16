@@ -15,11 +15,11 @@
 
   function render(entries) {
     if (!entries.length) {
-      track.style.animation = "none";
+      TickerMarquee.set(track, null);
       track.innerHTML = '<span class="empty">Belum ada alert…</span>';
       return;
     }
-    // Bangun satu blok item, lalu gandakan supaya marquee mulus.
+    // Bangun satu blok item; helper mengulang & menggeser agar marquee mulus.
     const block = entries
       .map(
         (e) =>
@@ -28,12 +28,7 @@
           `<span class="sep">•</span></span>`,
       )
       .join("");
-    track.innerHTML = block + block;
-
-    // Durasi animasi proporsional dengan panjang konten (kecepatan konsisten).
-    const width = track.scrollWidth / 2;
-    const dur = Math.max(12, Math.round(width / 60)); // ~60px/detik
-    track.style.animation = `marquee ${dur}s linear infinite`;
+    TickerMarquee.set(track, block);
   }
 
   async function tick() {

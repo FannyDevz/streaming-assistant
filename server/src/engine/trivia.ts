@@ -48,10 +48,11 @@ export class TriviaEngine {
     this.answered += 1;
     const text = norm(msg.text);
     if (!text) return null;
-    // Cocok bila jawaban muncul sebagai frasa utuh di pesan.
-    const hit = this.answers.some(
-      (a) => text === a || text.includes(a),
-    );
+    // Cocok bila jawaban muncul sebagai kata/frasa UTUH (batas spasi), bukan
+    // potongan kata — kalau tidak, jawaban pendek seperti "ok" ikut menang dari
+    // pesan "oke juga", dan "5" menang dari "525".
+    const padded = ` ${text} `;
+    const hit = this.answers.some((a) => padded.includes(` ${a} `));
     if (hit) {
       this.winner = { authorChannelId: msg.authorChannelId, name: msg.name, answer: msg.text.trim() };
       this.active = false; // soal selesai begitu ada pemenang

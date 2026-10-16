@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { TemplatesRepo } from "../db/repo/templates.ts";
+import type { RewardsRepo } from "../db/repo/rewards.ts";
 import { config } from "../config.ts";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -60,17 +61,21 @@ function toInput(data: z.infer<typeof bodySchema>) {
 
 export function templateRoutes(
   app: FastifyInstance,
-  deps: { templates: TemplatesRepo },
+  deps: { templates: TemplatesRepo; rewards: RewardsRepo },
 ): void {
-  // Cari template lain yang command-nya sama (case-insensitive). Null bila aman.
+  // Cari command yang sama (case-insensitive) di template MAUPUN reward. Null bila aman.
+  // Reward ikut dicek karena kedua pipeline jalan untuk pesan yang sama di index.ts —
+  // command kembar berarti point penonton terpotong dua kali.
   function commandClash(command: string, exceptId: number | null) {
     const cmd = command.trim().toLowerCase();
     if (!cmd) return null;
-    return (
-      deps.templates
-        .list()
-        .find((t) => (t.command ?? "").trim().toLowerCase() === cmd && t.id !== exceptId) ?? null
-    );
+    const tpl = deps.templates
+      .list()
+      .find((t) => (t.command ?? "").trim().toLowerCase() === cmd && t.id !== exceptId);
+    if (tpl) return { name: tpl.name, kind: "template" };
+    const rw = deps.rewards.list().find((r) => r.command.trim().toLowerCase() === cmd);
+    if (rw) return { name: rw.name, kind: "reward" };
+    return null;
   }
 
   app.get("/api/templates", async () => ({ entries: deps.templates.list() }));
@@ -83,7 +88,9 @@ export function templateRoutes(
     const input = toInput(parsed.data);
     const clash = commandClash(input.command, null);
     if (clash) {
-      return reply.code(409).send({ error: `Command "${input.command}" sudah dipakai template "${clash.name}".` });
+      return reply
+        .code(409)
+        .send({ error: `Command "${input.command}" sudah dipakai ${clash.kind} "${clash.name}".` });
     }
     const id = deps.templates.create(input);
     return deps.templates.getById(id);
@@ -98,7 +105,9 @@ export function templateRoutes(
     const input = toInput(parsed.data);
     const clash = commandClash(input.command, id);
     if (clash) {
-      return reply.code(409).send({ error: `Command "${input.command}" sudah dipakai template "${clash.name}".` });
+      return reply
+        .code(409)
+        .send({ error: `Command "${input.command}" sudah dipakai ${clash.kind} "${clash.name}".` });
     }
     if (!deps.templates.update(id, input)) {
       return reply.code(404).send({ error: "template tidak ditemukan" });

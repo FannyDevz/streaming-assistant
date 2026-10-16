@@ -4,10 +4,12 @@ import type { ViewersRepo } from "../db/repo/viewers.ts";
 import type { SettingsRepo } from "../db/repo/settings.ts";
 import type { RewardsRepo, Reward } from "../db/repo/rewards.ts";
 
-export type RewardResult =
-  | { status: "notcommand" }
-  | { status: "toolong" | "insufficient"; name: string }
+/** Hasil klaim reward, lepas dari asalnya (chat atau web). */
+export type ClaimResult =
+  | { status: "toolong" | "insufficient" | "disabled"; name: string }
   | { status: "ok"; name: string; points: number; reward: Reward; claimId: number; message: string };
+
+export type RewardResult = { status: "notcommand" } | ClaimResult;
 
 export class RewardsEngine {
   constructor(
@@ -27,11 +29,29 @@ export class RewardsEngine {
     if (!reward) return { status: "notcommand" };
 
     const message = raw.slice(reward.command.length).trim();
-    const maxLen = this.settings.get<number>("alert.maxLen", 100);
-    if (message.length > maxLen) return { status: "toolong", name: msg.name };
+    return this.claimReward(host, msg.authorChannelId, msg.name, reward, message);
+  }
 
-    const viewer = this.viewers.getByAuthor(host, msg.authorChannelId);
-    if (!viewer || viewer.points < reward.cost) return { status: "insufficient", name: msg.name };
+  /**
+   * Validasi + potong point + catat klaim untuk satu reward.
+   *
+   * Seperti CommandsEngine.redeemTemplate: tidak tahu-menahu soal chat, supaya
+   * aturan biaya/cooldown cuma hidup di satu tempat.
+   */
+  claimReward(
+    host: string,
+    authorChannelId: string,
+    name: string,
+    reward: Reward,
+    message: string,
+  ): ClaimResult {
+    if (!reward.enabled) return { status: "disabled", name };
+
+    const maxLen = this.settings.get<number>("alert.maxLen", 100);
+    if (message.length > maxLen) return { status: "toolong", name };
+
+    const viewer = this.viewers.getByAuthor(host, authorChannelId);
+    if (!viewer || viewer.points < reward.cost) return { status: "insufficient", name };
 
     const now = Date.now();
     const points = this.viewers.addPoints(viewer.id, -reward.cost, "reward", now);
@@ -39,13 +59,13 @@ export class RewardsEngine {
       rewardId: reward.id,
       rewardName: reward.name,
       host,
-      author: msg.authorChannelId,
-      name: msg.name,
+      author: authorChannelId,
+      name,
       message,
       cost: reward.cost,
       now,
     });
 
-    return { status: "ok", name: msg.name, points, reward, claimId, message };
+    return { status: "ok", name, points, reward, claimId, message };
   }
 }

@@ -53,9 +53,11 @@ export function alertRoutes(
   });
 
   // Sembunyikan alert yang sedang tampil + kosongkan antrian (anti pesan iseng).
+  // Antrian dikosongkan DULU: skipActive() memanggil dispatchNext(), jadi kalau
+  // urutannya dibalik alert berikutnya sempat tampil sebelum antrian dibuang.
   app.post("/api/alerts/skip", async () => {
-    const skipped = deps.queue.skipActive();
     deps.queue.clearPending();
+    const skipped = deps.queue.skipActive();
     return { ok: true, skipped };
   });
 

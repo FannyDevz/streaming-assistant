@@ -41,7 +41,9 @@ There is **no test framework**. Verify changes by (a) `npm run build` / `typeche
 
 **Data flow:** `masterchat` reads the live chat with no auth/API key and **never posts to chat**. `ChatReader` (`server/src/chat/reader.ts`) fires `onMessage` for each chat line; `server/src/index.ts` wires the whole pipeline.
 
-**`onMessage` pipeline order matters** (in `index.ts`): (1) award points via `PointsEngine`, (2) compute level badge + **broadcast the chat message**, (3) reward store, (4) `!alert` command, (5) giveaway feed, (6) trivia feed. Steps that touch settings/points are wrapped in `try/catch` **specifically so a bad config (e.g. malformed bonus command) can't stop the chat broadcast**. Keep the chat broadcast unblockable when editing this function.
+**`onMessage` pipeline order matters** (in `index.ts`): (1) award points via `PointsEngine`, (2) compute level badge + **broadcast the chat message**, (3) reward store, (4) `!alert` command — **only when step 3 returned `notcommand`**, (5) giveaway feed, (6) trivia feed. Steps that touch settings/points are wrapped in `try/catch` **specifically so a bad config (e.g. malformed bonus command) can't stop the chat broadcast**. Keep the chat broadcast unblockable when editing this function.
+
+Step 4's guard is the last line of defense against a command string existing in **both** `rewards` and `alert_templates`: without it one chat message pays both, deducting points twice. The `/api/rewards` and `/api/templates` routes reject clashes across both tables (HTTP 409), but `/api/config/import` writes straight to the repos and bypasses that check — so never remove the guard in favour of route validation alone.
 
 **WebSocket hub** (`server/src/ws/hub.ts`) tracks clients by role: `overlay | dashboard | chat`. `broadcast(event, role?)` sends the `ServerEvent` union. **`AlertQueue`** (`server/src/ws/queue.ts`) dispatches alerts one-at-a-time to the `overlay` role, waits for an `alert:shown` ack, holds pending alerts until an overlay connects, and persists via the `redemptions` table so the queue survives restarts. It exposes `setHooks({onStart,onEnd})` — used to drive OBS scene switching during an alert.
 
@@ -51,7 +53,9 @@ There is **no test framework**. Verify changes by (a) `npm run build` / `typeche
 
 **Database** (`server/src/db/`): `migrate.ts` holds the `SCHEMA` string, an `ensureColumn(db, table, col, ddl)` helper, and `DEFAULT_SETTINGS`. Repos in `server/src/db/repo/*` wrap tables (`viewers`, `point_ledger`, `redemptions`, `alert_templates`, `settings`, `rewards`, `reward_claims`, `giveaway_winners`, `sounds`, `stream_sessions`, `sessions`). Points are scoped per `(host_channel_id × author_channel_id)`.
 
-**Auth** (`server/src/auth.ts`, `routes/auth.ts`): password login (`ADMIN_PASSWORD`, default `admin`), tokens persisted in the `sessions` table. An `onRequest` hook guards every `/api/*` except `/api/auth/login`; `/overlay`, `/uploads`, `/ws`, `/nb`, `/public`, `/leaderboard`, `/health`, and `/` (dashboard) are public.
+**Auth** (`server/src/auth.ts`, `routes/auth.ts`): password login (`ADMIN_PASSWORD`, default `admin`), bearer tokens persisted in the `sessions` table. An `onRequest` hook guards every `/api/*` except `/api/auth/login`; `/overlay`, `/uploads`, `/ws`, `/nb`, `/public`, `/leaderboard`, `/health`, and `/` (dashboard) are public.
+
+**Spending rules live in one place.** `CommandsEngine.redeemTemplate()` and `RewardsEngine.claimReward()` hold all cost/cooldown/moderation logic and know nothing about chat. Any future caller (e.g. a web spending path) must go through them so paths cannot diverge. Do not reimplement these checks in a route.
 
 **Dashboard i18n** (`dashboard/src/i18n.tsx`): lightweight "Indonesian string is the key" system. `LangProvider` (in `main.tsx`) holds `lang` (`id`/`en`, persisted to `localStorage` `sa_lang`); components call `const { t } = useLang()` and wrap visible strings with `t("...")`. Each file registers its own English map at module top via `registerDict({...})` (co-located — no central dictionary). `t(key, params?)` does `{name}`-style substitution. The header has an ID/EN toggle that re-renders live.
 
@@ -65,4 +69,5 @@ There is **no test framework**. Verify changes by (a) `npm run build` / `typeche
 - Empty-body POSTs (e.g. `/stop`) rely on a custom `application/json` content-type parser in `index.ts` that treats `""` as `{}`; without it Fastify returns 400.
 - **GIF vs image are separate fields**: `gif_path` (large, video-style overlay position) is distinct from `image_path` (small thumbnail). Don't auto-detect GIFs by extension.
 - Config export/import (`routes/config.ts`) is **version 2** and round-trips `settings` + `templates` + `rewards`; import **replaces** templates & rewards.
+- **`redemptions.status` has three values**, not two: `pending` → `shown` (displayed + acked) or `skipped` (dropped via the Hide button). Anything that cancels an alert must move it out of `pending`, otherwise `getPending()` resurrects it on the next boot. `/api/alerts/skip` must call `clearPending()` **before** `skipActive()` — the latter runs `dispatchNext()`, which would otherwise flash the next queued alert on screen before the queue is emptied.
 - On macOS, the repo lives under `~/Documents`, which macOS TCC can block from terminal/tools ("Operation not permitted"). If file reads/writes fail wholesale, it's a Full Disk Access issue, not the code.

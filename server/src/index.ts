@@ -217,15 +217,20 @@ const reader = new ChatReader({
       }
     }
 
-    // 4) Command !alert.
-    const result = commands.handle(host, msg);
-    if (result.status === "ok") {
-      queue.enqueue(result.alert);
-      hub.broadcast({
-        type: "points",
-        data: { authorChannelId: msg.authorChannelId, name: msg.name, points: result.points },
-      });
-      app.log.info(`🔔 alert dari ${result.name}: "${result.alert.message}"`);
+    // 4) Command !alert. DILEWATI kalau pesan ini sudah diklaim reward di langkah 3:
+    //    command kembar antara reward & template (bisa lolos lewat import config,
+    //    yang menulis langsung ke repo tanpa cek bentrok) akan memotong point DUA KALI
+    //    untuk satu pesan. Cek bentrok di route hanya menjaga pintu dashboard.
+    if (rw.status === "notcommand") {
+      const result = commands.handle(host, msg);
+      if (result.status === "ok") {
+        queue.enqueue(result.alert);
+        hub.broadcast({
+          type: "points",
+          data: { authorChannelId: msg.authorChannelId, name: msg.name, points: result.points },
+        });
+        app.log.info(`🔔 alert dari ${result.name}: "${result.alert.message}"`);
+      }
     }
 
     // 5) Giveaway: kumpulkan peserta.
@@ -347,10 +352,10 @@ monitorRoutes(app, {
 pointsRoutes(app, { reader, hub, viewers, settings });
 nightbotRoutes(app, { reader, viewers, settings });
 alertRoutes(app, { reader, queue, redemptions, templates, settings });
-templateRoutes(app, { templates });
+templateRoutes(app, { templates, rewards });
 publicRoutes(app, { reader, viewers, redemptions, settings, rewards });
 configRoutes(app, { settings, templates, rewards });
-rewardRoutes(app, { rewards, viewers });
+rewardRoutes(app, { rewards, viewers, templates });
 gameRoutes(app, { reader, viewers, settings });
 giveawayRoutes(app, {
   giveaway,

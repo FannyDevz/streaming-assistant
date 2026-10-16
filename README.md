@@ -114,7 +114,7 @@ ADMIN_PASSWORD=password-rahasia-kamu   # default 'admin' — WAJIB diganti
 - Semua endpoint admin (`/api/*`) butuh login; dashboard menyimpan token sesi.
 - Yang **tetap publik** (memang harus): overlay OBS (`/overlay/*`), endpoint Nightbot
   (`/nb/*`), file upload (`/uploads/*`), WebSocket, dan `/health`.
-- Token sesi disimpan di memori server — restart server = login ulang.
+- Token sesi disimpan di tabel `sessions` (tahan restart, kedaluwarsa 30 hari).
 
 ## 📺 Setup OBS
 
@@ -182,6 +182,7 @@ Command chat umum lain (`!jadwal`, `!sosmed`) + moderasi kata cukup diatur di Ni
 server/     Backend Fastify + masterchat + SQLite (data.sqlite) + uploads/
 overlay/    Halaman alert untuk OBS Browser Source
 dashboard/  Panel kontrol (React + Vite + Tailwind, gaya neobrutalism)
+public/     Halaman penonton: leaderboard
 shared/     Tipe bersama (WebSocket events, dll)
 docs/       Rencana teknis
 ```

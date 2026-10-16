@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { RewardsRepo } from "../db/repo/rewards.ts";
 import type { ViewersRepo } from "../db/repo/viewers.ts";
+import type { TemplatesRepo } from "../db/repo/templates.ts";
 
 const bodySchema = z.object({
   name: z.string().min(1).max(40),
@@ -15,11 +16,18 @@ const bodySchema = z.object({
 
 export function rewardRoutes(
   app: FastifyInstance,
-  deps: { rewards: RewardsRepo; viewers: ViewersRepo },
+  deps: { rewards: RewardsRepo; viewers: ViewersRepo; templates: TemplatesRepo },
 ): void {
+  // Template alert ikut dicek: kalau command kembar, pipeline reward DAN pipeline
+  // !alert di index.ts sama-sama jalan untuk satu pesan → point terpotong dua kali.
   function clash(command: string, exceptId: number | null) {
     const c = command.trim().toLowerCase();
-    return deps.rewards.list().find((r) => r.command.trim().toLowerCase() === c && r.id !== exceptId) ?? null;
+    if (!c) return null;
+    const rw = deps.rewards.list().find((r) => r.command.trim().toLowerCase() === c && r.id !== exceptId);
+    if (rw) return { name: rw.name, kind: "reward" };
+    const tpl = deps.templates.list().find((t) => (t.command ?? "").trim().toLowerCase() === c);
+    if (tpl) return { name: tpl.name, kind: "template" };
+    return null;
   }
 
   app.get("/api/rewards", async () => ({ entries: deps.rewards.list() }));
@@ -28,7 +36,7 @@ export function rewardRoutes(
     const p = bodySchema.safeParse(req.body);
     if (!p.success) return reply.code(400).send({ error: p.error.issues[0]?.message ?? "input tidak valid" });
     const c = clash(p.data.command, null);
-    if (c) return reply.code(409).send({ error: `Command "${p.data.command}" sudah dipakai reward "${c.name}".` });
+    if (c) return reply.code(409).send({ error: `Command "${p.data.command}" sudah dipakai ${c.kind} "${c.name}".` });
     const id = deps.rewards.create(p.data);
     return deps.rewards.getById(id);
   });
@@ -38,7 +46,7 @@ export function rewardRoutes(
     const p = bodySchema.safeParse(req.body);
     if (!p.success) return reply.code(400).send({ error: p.error.issues[0]?.message ?? "input tidak valid" });
     const c = clash(p.data.command, id);
-    if (c) return reply.code(409).send({ error: `Command "${p.data.command}" sudah dipakai reward "${c.name}".` });
+    if (c) return reply.code(409).send({ error: `Command "${p.data.command}" sudah dipakai ${c.kind} "${c.name}".` });
     if (!deps.rewards.update(id, p.data)) return reply.code(404).send({ error: "reward tidak ditemukan" });
     return deps.rewards.getById(id);
   });

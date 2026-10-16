@@ -48,22 +48,27 @@ export class AlertQueue {
   skipActive(): boolean {
     if (!this.active) return false;
     this.broadcastOverlay({ type: "skip" });
-    this.finishActive();
+    this.finishActive("skipped");
     return true;
   }
 
-  /** Kosongkan antrian yang belum tampil. */
+  /** Kosongkan antrian yang belum tampil. Baris DB ikut ditandai 'skipped',
+   *  kalau tidak alert yang dibuang akan muncul lagi saat server restart. */
   clearPending(): void {
-    this.queue = [];
+    const dropped = this.queue.splice(0);
+    const now = Date.now();
+    for (const alert of dropped) this.redemptions.markSkipped(alert.id, now);
   }
 
-  private finishActive(): void {
+  private finishActive(status: "shown" | "skipped" = "shown"): void {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
     if (this.active) {
-      this.redemptions.markShown(this.active.id, Date.now());
+      const now = Date.now();
+      if (status === "skipped") this.redemptions.markSkipped(this.active.id, now);
+      else this.redemptions.markShown(this.active.id, now);
       this.hooks.onEnd?.();
     }
     this.active = null;

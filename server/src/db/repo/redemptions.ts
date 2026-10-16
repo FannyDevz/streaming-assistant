@@ -58,6 +58,14 @@ export class RedemptionsRepo {
       .run(now, id);
   }
 
+  /** Alert dibatalkan lewat tombol Sembunyikan. Statusnya HARUS keluar dari
+   *  'pending' supaya tidak dipulihkan lagi oleh getPending() setelah restart. */
+  markSkipped(id: number, now: number): void {
+    this.db
+      .prepare("UPDATE redemptions SET status = 'skipped', shown_at = ? WHERE id = ?")
+      .run(now, id);
+  }
+
   listByStatus(status: string | undefined, limit: number): RedemptionRow[] {
     if (status) {
       return this.db

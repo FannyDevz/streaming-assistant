@@ -1,0 +1,281 @@
+/* Scene overlay full-screen untuk OBS — gaya NEOBRUTALISM × ANIME.
+   Dipakai tiga halaman (Segera Dimulai / Ngobrol Dulu / Stream Selesai).
+   Warna diatur per-scene lewat --bg & --accent pada <body>.
+
+   Elemen brutal : border 8px hitam, bayangan keras (offset solid #000), blok warna
+                   tebal, rotasi, judul putih beroutline dengan bayangan warna.
+   Elemen anime  : manga speed-lines, kelopak sakura jatuh, kilau bintang, starburst,
+                   aksen katakana.
+
+   PENTING (OBS): warna & pola dipasang sebagai background-IMAGE, bukan
+   background-color — karena OBS Browser Source menyuntik
+   `body{background-color:rgba(0,0,0,0)}` yang akan menghapus background-color. */
+:root {
+  --ink: #000;
+  --yellow: #ffde00;
+  --pink: #ff5ea8;
+  --cyan: #4dd0e1;
+  --purple: #b18cff;
+  --paper: #fff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+}
+body {
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.07) 2px, transparent 2.5px), /* halftone dots */
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 28px, transparent 28px 56px), /* garis diagonal */
+    linear-gradient(var(--bg, var(--cyan)), var(--bg, var(--cyan))); /* warna dasar (OBS-safe) */
+  background-size: 24px 24px, auto, auto;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+/* Manga speed-lines memancar dari belakang kartu. */
+body::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 48%,
+    rgba(0, 0, 0, 0.1) 0 1.3deg,
+    transparent 1.3deg 7deg
+  );
+  animation: spin 60s linear infinite;
+  z-index: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Starburst manga di belakang kartu (khusus start/end yang punya .burst). */
+.burst {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(80vw, 84vh, 980px);
+  height: min(80vw, 84vh, 980px);
+  background: var(--accent);
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%,
+    50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%
+  );
+  filter: drop-shadow(12px 12px 0 #000);
+  opacity: 0.9;
+  z-index: 0;
+  animation: spin 45s linear infinite;
+}
+
+/* Blok neobrutal melayang. */
+.deco {
+  position: absolute;
+  border: 5px solid #000;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.3);
+  z-index: 0;
+  pointer-events: none;
+}
+.deco.c1 { width: 120px; height: 120px; border-radius: 50%; background: var(--accent); top: 12%; left: 8%; animation: float 6s ease-in-out infinite; }
+.deco.c2 { width: 92px; height: 92px; background: var(--paper); top: 72%; left: 14%; transform: rotate(12deg); animation: float 7s ease-in-out infinite reverse; }
+.deco.c3 { width: 140px; height: 140px; border-radius: 50%; background: var(--paper); top: 66%; right: 10%; animation: float 8s ease-in-out infinite; }
+.deco.c4 { width: 82px; height: 82px; background: var(--accent); top: 15%; right: 14%; transform: rotate(-10deg); animation: float 5.5s ease-in-out infinite reverse; }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-26px) rotate(var(--r, 0deg)); } }
+
+/* Kelopak sakura / kilau berjatuhan. */
+.petals { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.petal {
+  position: absolute;
+  top: -8%;
+  line-height: 1;
+  animation: fall linear infinite;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+@keyframes fall {
+  0% { transform: translateY(-12vh) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(114vh) translateX(12vw) rotate(440deg); opacity: 1; }
+}
+.petal:nth-child(1)  { left: 5%;  animation-duration: 9s;   animation-delay: 0s;   font-size: 24px; }
+.petal:nth-child(2)  { left: 16%; animation-duration: 12s;  animation-delay: 1.5s; font-size: 32px; }
+.petal:nth-child(3)  { left: 27%; animation-duration: 8s;   animation-delay: 3s;   font-size: 18px; }
+.petal:nth-child(4)  { left: 38%; animation-duration: 11s;  animation-delay: 0.6s; font-size: 28px; }
+.petal:nth-child(5)  { left: 49%; animation-duration: 10s;  animation-delay: 2.2s; font-size: 20px; }
+.petal:nth-child(6)  { left: 60%; animation-duration: 13s;  animation-delay: 4s;   font-size: 34px; }
+.petal:nth-child(7)  { left: 71%; animation-duration: 9s;   animation-delay: 1s;   font-size: 22px; }
+.petal:nth-child(8)  { left: 82%; animation-duration: 12s;  animation-delay: 2.8s; font-size: 30px; }
+.petal:nth-child(9)  { left: 91%; animation-duration: 8.5s; animation-delay: 3.6s; font-size: 18px; }
+.petal:nth-child(10) { left: 45%; animation-duration: 14s;  animation-delay: 5s;   font-size: 26px; }
+
+.spark { position: absolute; font-size: 30px; z-index: 0; animation: twinkle 2.4s ease-in-out infinite; }
+.spark.s1 { top: 22%; left: 21%; animation-delay: 0s; }
+.spark.s2 { top: 30%; right: 19%; animation-delay: 0.8s; font-size: 22px; }
+.spark.s3 { bottom: 24%; left: 25%; animation-delay: 1.2s; font-size: 26px; }
+.spark.s4 { bottom: 30%; right: 25%; animation-delay: 1.8s; }
+@keyframes twinkle { 0%, 100% { transform: scale(0.7) rotate(0deg); opacity: 0.4; } 50% { transform: scale(1.2) rotate(20deg); opacity: 1; } }
+
+/* Kartu utama — brutal. */
+.card {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  border: 8px solid #000;
+  box-shadow: 22px 22px 0 #000;
+  padding: clamp(28px, 5vw, 72px) clamp(32px, 6vw, 96px);
+  text-align: center;
+  max-width: 80vw;
+  transform: rotate(-2deg);
+}
+
+/* Aksen katakana (tag hitam). */
+.jp {
+  display: inline-block;
+  background: #000;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 6px;
+  font-size: clamp(14px, 1.7vw, 24px);
+  padding: 4px 14px;
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 var(--accent);
+  transform: rotate(-1.5deg);
+  margin-bottom: clamp(12px, 1.8vw, 20px);
+}
+
+/* Badge status berkedip. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent);
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0 #000;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: clamp(14px, 1.6vw, 22px);
+  padding: 8px 18px;
+  margin-bottom: clamp(14px, 2.2vw, 30px);
+  transform: rotate(1.5deg);
+}
+.badge .dot { width: 14px; height: 14px; border-radius: 50%; background: #000; animation: blink 1.1s steps(2, start) infinite; }
+@keyframes blink { 50% { opacity: 0.15; } }
+
+.emoji {
+  font-size: clamp(56px, 9vw, 130px);
+  line-height: 1;
+  display: block;
+  margin-bottom: clamp(6px, 1.2vw, 16px);
+  filter: drop-shadow(6px 6px 0 rgba(0, 0, 0, 0.28));
+  animation: bob 2.6s ease-in-out infinite;
+}
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-14px) rotate(5deg); } }
+
+/* Judul putih beroutline + bayangan warna keras — logo anime yang brutal. */
+.title {
+  font-size: clamp(46px, 8.6vw, 148px);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -1px;
+  color: #fff;
+  -webkit-text-stroke: 4px #000;
+  paint-order: stroke fill;
+  text-shadow: 8px 8px 0 var(--accent), 13px 13px 0 rgba(0, 0, 0, 0.25);
+}
+
+.subtitle {
+  margin: clamp(16px, 2.4vw, 32px) auto 0;
+  font-size: clamp(18px, 2.3vw, 32px);
+  font-weight: 800;
+  max-width: 24ch;
+}
+
+/* Hitung mundur. */
+.countdown { margin-top: clamp(18px, 2.8vw, 38px); display: none; }
+.countdown.on { display: block; }
+.countdown .cd-label {
+  font-size: clamp(12px, 1.4vw, 18px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.65;
+  margin-bottom: 8px;
+}
+.countdown .cd-time {
+  display: inline-block;
+  background: #000;
+  color: #fff;
+  border: 5px solid #000;
+  box-shadow: 10px 10px 0 var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  font-size: clamp(40px, 7vw, 104px);
+  line-height: 1;
+  padding: 8px 26px;
+}
+
+/* Bar bawah: jam + handle. */
+.footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.footer .chip {
+  background: var(--paper);
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  margin: 0 22px 22px;
+  padding: 10px 18px;
+  font-size: clamp(14px, 1.6vw, 22px);
+  letter-spacing: 1px;
+}
+.footer .chip.clock { background: var(--accent); }
+.footer .chip[hidden] { display: none; }
+
+/* ---- Scene "Ngobrol Dulu": bingkai kosong untuk kamera ----
+   Streamer menaruh sumber webcam di OBS PERSIS di atas kotak .cam. Kotak lurus
+   (tanpa rotasi) agar webcam persegi mudah diselaraskan. */
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(22px, 3vw, 60px);
+  max-width: 92vw;
+}
+.cam {
+  flex: 1 1 56%;
+  aspect-ratio: 16 / 9;
+  border: 8px solid #000;
+  box-shadow: 22px 22px 0 #000;
+  background: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.06) 0 16px, transparent 16px 32px),
+    var(--paper);
+  display: grid;
+  place-items: center;
+}
+.cam-hint {
+  text-align: center;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.4;
+  line-height: 1.35;
+}
+.cam-hint .big { display: block; font-size: clamp(44px, 5vw, 84px); }
+.cam-hint small { font-size: clamp(11px, 1.2vw, 15px); font-weight: 800; letter-spacing: 1px; }
+.stage .card { flex: 1 1 44%; max-width: none; text-align: left; }
+.stage .card .badge { margin-left: 0; }
+.stage .card .subtitle { margin-left: 0; margin-right: 0; }
+.stage .title { font-size: clamp(34px, 5vw, 84px); }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, .burst, .deco, .emoji, .badge .dot, .petal, .spark { animation: none; }
+}

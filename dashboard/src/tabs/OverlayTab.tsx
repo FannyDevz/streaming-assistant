@@ -68,6 +68,17 @@ registerDict({
   "Running text disimpan ✅": "Running text saved ✅",
   "Goal disimpan ✅": "Goal saved ✅",
   gagal: "failed",
+  "🎬 Scene Layar Penuh": "🎬 Full-screen Scenes",
+  "Layar penuh 1920×1080 untuk transisi stream — gaya neobrutalism × anime. Pasang tiap scene sebagai Browser Source terpisah di OBS.":
+    "Full-screen 1920×1080 stream transitions — neobrutalism × anime style. Add each scene as a separate Browser Source in OBS.",
+  "⏰ Segera Dimulai": "⏰ Starting Soon",
+  "💬 Ngobrol Dulu": "💬 Chatting / BRB",
+  "👋 Stream Selesai": "👋 Stream Ended",
+  "Hitung mundur (opsional):": "Countdown (optional):",
+  "atau": "or",
+  "Ganti handle:": "Change handle:",
+  'Untuk "Ngobrol Dulu", taruh sumber kamera di OBS tepat di atas kotak KAMERA.':
+    'For "Chatting", place your camera source in OBS right on top of the CAMERA box.',
 });
 
 // Overlay disajikan oleh backend (:4300). Saat dev dashboard di :4301,
@@ -105,14 +116,17 @@ function CopyUrl({ url }: { url: string }) {
   );
 }
 
-/** Pratinjau overlay: iframe 1280×720 diperkecil, latar kotak-kotak (ala transparan OBS). */
-function Preview({ src }: { src: string }) {
+/** Pratinjau overlay: iframe 1280×720 diperkecil, latar kotak-kotak (ala transparan OBS).
+    `w` = lebar target pratinjau (default 520); skala & tinggi 16:9 dihitung dari situ. */
+function Preview({ src, w = 520 }: { src: string; w?: number }) {
+  const scale = w / 1280;
+  const h = Math.round((w * 9) / 16);
   return (
     <div
       className="w-full overflow-hidden"
       style={{
-        maxWidth: 520,
-        height: 293,
+        maxWidth: w,
+        height: h,
         border: "3px solid #000",
         boxShadow: "5px 5px 0 #000",
         position: "relative",
@@ -129,7 +143,7 @@ function Preview({ src }: { src: string }) {
           width: 1280,
           height: 720,
           border: 0,
-          transform: "scale(0.406)",
+          transform: `scale(${scale})`,
           transformOrigin: "top left",
           position: "absolute",
           top: 0,
@@ -219,6 +233,33 @@ export function OverlayTab() {
       </div>
 
       <AlertControl />
+
+      {/* SCENE LAYAR PENUH (Segera Dimulai / Ngobrol Dulu / Stream Selesai) */}
+      <Card title={t("🎬 Scene Layar Penuh")} accent="var(--cyan)">
+        <p className="text-sm opacity-70 mb-3">
+          {t(
+            "Layar penuh 1920×1080 untuk transisi stream — gaya neobrutalism × anime. Pasang tiap scene sebagai Browser Source terpisah di OBS.",
+          )}
+        </p>
+        <div className="grid md:grid-cols-3 gap-4 items-start">
+          {[
+            { key: "start", label: "⏰ Segera Dimulai", file: "scene-start.html" },
+            { key: "brb", label: "💬 Ngobrol Dulu", file: "scene-brb.html" },
+            { key: "end", label: "👋 Stream Selesai", file: "scene-end.html" },
+          ].map((sc) => (
+            <div key={sc.key} className="flex flex-col gap-1">
+              <span className="font-extrabold text-sm uppercase">{t(sc.label)}</span>
+              <Preview src={`${OVERLAY_BASE}/overlay/${sc.file}`} w={340} />
+              <CopyUrl url={`${OVERLAY_BASE}/overlay/${sc.file}`} />
+            </div>
+          ))}
+        </div>
+        <p className="text-xs opacity-60 mt-3">
+          {t("Hitung mundur (opsional):")} <code>?mins=10</code> {t("atau")} <code>?until=19:30</code>.{" "}
+          {t("Ganti handle:")} <code>?handle=@kamu</code>.{" "}
+          {t('Untuk "Ngobrol Dulu", taruh sumber kamera di OBS tepat di atas kotak KAMERA.')}
+        </p>
+      </Card>
 
       {/* ALERT */}
       <Card title={t("🔔 Overlay Alert")} accent="var(--pink)">
